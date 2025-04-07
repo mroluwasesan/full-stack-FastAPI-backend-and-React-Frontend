@@ -1,1 +1,16 @@
 .env
+.env.*
+*.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Other common files to ignore
+node_modules/
+__pycache__/
+*.pyc
+.DS_Store
+dist/
+build/
+.vscode/
