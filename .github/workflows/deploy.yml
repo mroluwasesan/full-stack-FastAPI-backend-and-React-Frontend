@@ -42,7 +42,38 @@ jobs:
           username: ${{ secrets.SERVER_USERNAME }}
           password: ${{ secrets.SERVER_PASSWORD }}
           script: |
+            # Check if Docker is installed and running
+            if ! command -v docker &> /dev/null; then
+              echo "Docker is not installed"
+              exit 1
+            fi
+            
+            # Check if Docker Compose is installed
+            if ! command -v docker-compose &> /dev/null; then
+              echo "Docker Compose is not installed"
+              exit 1
+            fi
+            
+            # Check if Docker daemon is running
+            if ! docker info &> /dev/null; then
+              echo "Docker daemon is not running"
+              exit 1
+            fi
+            
             cd /path/to/your/project
+            
+            # Pull latest changes
             git pull origin main
-            docker-compose down
+            
+            # Stop and remove existing containers
+            docker-compose down || true
+            
+            # Build and start new containers
             docker-compose up -d --build
+            
+            # Check if containers are running
+            if ! docker-compose ps | grep -q "Up"; then
+              echo "Failed to start containers"
+              docker-compose logs
+              exit 1
+            fi
