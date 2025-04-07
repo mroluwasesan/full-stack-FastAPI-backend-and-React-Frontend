@@ -1,0 +1,31 @@
+# Stage 1: Build environment
+FROM node:16-alpine AS build
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies
+RUN npm install
+
+# Copy all frontend files
+COPY . .
+
+# First ensure the environment variable is set during build time
+ARG VITE_API_URL=http://localhost:8000
+ENV VITE_API_URL=${VITE_API_URL}
+RUN npm run build
+
+# Stage 2: Production environment
+FROM nginx:alpine
+
+# Copy built assets from build stage
+COPY --from=build /app/dist /usr/share/nginx/html
+
+# Expose port
+EXPOSE 80
+
+# Start nginx
+CMD ["nginx", "-g", "daemon off;"]
