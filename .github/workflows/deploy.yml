@@ -42,25 +42,76 @@ jobs:
           username: ${{ secrets.SERVER_USERNAME }}
           password: ${{ secrets.SERVER_PASSWORD }}
           script: |
-            # Check if Docker is installed and running
-            if ! command -v docker &> /dev/null; then
-              echo "Docker is not installed"
-              exit 1
+            # Function to check if a command exists
+            command_exists() {
+              command -v "$1" &> /dev/null
+            }
+
+            # Update package lists
+            echo "Updating package lists..."
+            sudo apt-get update
+
+            # Install Python 3.11 if not installed
+            if ! command_exists python3.11; then
+              echo "Installing Python 3.11..."
+              sudo apt-get install -y software-properties-common
+              sudo add-apt-repository -y ppa:deadsnakes/ppa
+              sudo apt-get update
+              sudo apt-get install -y python3.11 python3.11-venv python3.11-dev
             fi
-            
-            # Check if Docker Compose is installed
-            if ! command -v docker-compose &> /dev/null; then
-              echo "Docker Compose is not installed"
-              exit 1
+
+            # Install pip if not installed
+            if ! command_exists pip3; then
+              echo "Installing pip..."
+              sudo apt-get install -y python3-pip
             fi
-            
-            # Check if Docker daemon is running
-            if ! docker info &> /dev/null; then
-              echo "Docker daemon is not running"
-              exit 1
+
+            # Install Docker if not installed
+            if ! command_exists docker; then
+              echo "Installing Docker..."
+              sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common
+              curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+              sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+              sudo apt-get update
+              sudo apt-get install -y docker-ce
             fi
-            
-            cd /path/to/your/project
+
+            # Install Docker Compose if not installed
+            if ! command_exists docker-compose; then
+              echo "Installing Docker Compose..."
+              sudo curl -L "https://github.com/docker/compose/releases/download/v2.20.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+              sudo chmod +x /usr/local/bin/docker-compose
+            fi
+
+            # Start Docker service if not running
+            if ! sudo systemctl is-active --quiet docker; then
+              echo "Starting Docker service..."
+              sudo systemctl start docker
+              sudo systemctl enable docker
+            fi
+
+            # Add current user to docker group if not already added
+            if ! groups $USER | grep -q docker; then
+              echo "Adding user to docker group..."
+              sudo usermod -aG docker $USER
+              newgrp docker
+            fi
+
+            # Install required Python packages
+            echo "Installing required Python packages..."
+            pip3 install --upgrade pip
+            pip3 install docker-compose
+
+            # Verify installations
+            echo "Verifying installations..."
+            python3.11 --version
+            pip3 --version
+            docker --version
+            docker-compose --version
+
+            # Proceed with deployment
+            echo "All dependencies installed. Proceeding with deployment..."
+            cd ./dojo-task
             
             # Pull latest changes
             git pull origin main
@@ -77,3 +128,5 @@ jobs:
               docker-compose logs
               exit 1
             fi
+            
+            echo "Deployment completed successfully"
