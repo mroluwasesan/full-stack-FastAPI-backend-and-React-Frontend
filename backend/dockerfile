@@ -66,4 +66,4 @@ RUN chmod +x /app/prestart.sh
 EXPOSE 8000
 
 # Start command
-CMD ["bash", "-c", "./prestart.sh && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"]
+CMD ["bash", "-c", "./prestart.sh && uvicorn app.main:app --host 0.0.0.0 --port 8000"]

@@ -1,10 +1,43 @@
 services:
+
+  # Reverse Proxy (Traefik)
+  traefik:
+    image: traefik:v2.10
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--api.dashboard=true"  
+      - "--api.insecure=true" 
+    ports:
+      - "80:80"
+      - "8080:8080"  # Traefik dashboard
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - app-network
+
+  # Database Admin UI (Adminer)
+  adminer:
+    image: adminer:latest
+    restart: always
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.adminer.rule=Host(`adminer.localhost`)"
+      - "traefik.http.routers.adminer.entrypoints=web"
+    depends_on:
+      - db
+    networks:
+      - app-network
+
   frontend:
     build: 
       context: ./frontend
       dockerfile: Dockerfile
-    ports:
-      - "80:80"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=Host(`frontend.localhost`)"
+      - "traefik.http.routers.frontend.entrypoints=web"
     depends_on:
       - backend
     networks:
@@ -15,22 +48,24 @@ services:
       dockerfile: Dockerfile
     env_file:
       - ./backend/.env
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend.rule=Host(`api.localhost`)"
+      - "traefik.http.routers.backend.entrypoints=web"
+      - "traefik.http.services.backend.loadbalancer.server.port=8000"
     restart: unless-stopped
-    ports:
-      - "8000:8000"
     depends_on:
       db:
         condition: service_healthy
-
     networks:
       - app-network
 
   db:
     image: postgres:latest
+    env_file:
+      - ./backend/.env
     volumes:
       - db_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U app -d app"]
       interval: 5s
