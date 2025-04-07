@@ -1,5 +1,4 @@
 services:
-
   # Reverse Proxy (Traefik)
   traefik:
     image: traefik:v2.10
