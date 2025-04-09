@@ -24,6 +24,11 @@ services:
       - traefik-certificates:/letsencrypt
     networks:
       - app-network
+    # Adding security for the dashboard
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.dashboard.rule=Host(`traefik.task-dojo.com`)"
+      - "traefik.http.routers.dashboard.service=api@internal"
 
   # Database Admin UI (Adminer)
   adminer:
