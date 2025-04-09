@@ -11,7 +11,7 @@ services:
       - "--entrypoints.websecure.address=:443"
       - "--certificatesresolvers.myresolver.acme.httpchallenge=true"
       - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web"
-      - "--certificatesresolvers.myresolver.acme.email=mr.oluwasesan.com"
+      - "--certificatesresolvers.myresolver.acme.email=mr.oluwasesan@gmail.com"
       - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
       - "--api.dashboard=true"
       - "--api.insecure=false"
@@ -94,4 +94,6 @@ networks:
 
 volumes:
   db_data:
+    driver: local
+  traefik-certificates:
     driver: local
