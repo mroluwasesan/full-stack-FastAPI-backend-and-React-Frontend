@@ -109,13 +109,21 @@ jobs:
             docker --version
             docker-compose --version
 
-            # Proceed with deployment
-            echo "All dependencies installed. Proceeding with deployment..."
-            cd ./dojo-task
-            
-            # Pull latest changes
-            git pull origin main
-            
+            # Create and set up deployment directory
+            echo "Setting up deployment directory..."
+            DEPLOY_DIR="/home/$USER/dojo-task"
+            mkdir -p $DEPLOY_DIR
+            cd $DEPLOY_DIR
+
+            # Clone or update repository
+            if [ ! -d ".git" ]; then
+              echo "Cloning repository..."
+              git clone https://github.com/${{ github.repository }}.git .
+            else
+              echo "Updating repository..."
+              git pull origin main
+            fi
+
             # Stop and remove existing containers
             docker-compose down || true
             
