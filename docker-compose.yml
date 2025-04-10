@@ -78,11 +78,13 @@ services:
       - "traefik.http.routers.backend-api.entrypoints=websecure"
       - "traefik.http.routers.backend-api.tls=true"
       - "traefik.http.routers.backend-api.tls.certresolver=myresolver"
+      - "traefik.http.routers.backend-api.service=backend-api"
       - "traefik.http.services.backend-api.loadbalancer.server.port=8000"
       - "traefik.http.routers.backend-docs.rule=Host(`dojo-task.com`) && PathPrefix(`/docs`)"
       - "traefik.http.routers.backend-docs.entrypoints=websecure"
       - "traefik.http.routers.backend-docs.tls=true"
       - "traefik.http.routers.backend-docs.tls.certresolver=myresolver"
+      - "traefik.http.routers.backend-docs.service=backend-docs"
       - "traefik.http.services.backend-docs.loadbalancer.server.port=8000"
     restart: unless-stopped
     depends_on:
