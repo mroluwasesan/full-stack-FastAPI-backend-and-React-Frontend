@@ -14,7 +14,6 @@ RUN npm install
 COPY . .
 
 # Build with the correct API URL
-ARG VITE_API_URL=http://api.localhost
 ENV VITE_API_URL=${VITE_API_URL}
 RUN npm run build
 
