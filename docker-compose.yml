@@ -54,7 +54,7 @@ services:
     build: 
       context: ./frontend
       dockerfile: Dockerfile
-      env_file:
+    env_file:
       - ./frontend/.env
     labels:
       - "traefik.enable=true"
