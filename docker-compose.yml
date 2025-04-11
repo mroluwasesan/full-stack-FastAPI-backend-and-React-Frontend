@@ -54,6 +54,8 @@ services:
     build: 
       context: ./frontend
       dockerfile: Dockerfile
+      env_file:
+      - ./frontend/.env
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.frontend.rule=Host(`dojo-task.com`)"
