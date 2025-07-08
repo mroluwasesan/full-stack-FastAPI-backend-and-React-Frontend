@@ -1,0 +1,83 @@
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    networks:
+      - shared-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.prometheus.rule=Host(`dojo-task.com`) && PathPrefix(`/prometheus`)"
+      - "traefik.http.routers.prometheus.entrypoints=websecure"
+      - "traefik.http.routers.prometheus.tls=true"
+      - "traefik.http.routers.prometheus.tls.certresolver=myresolver"
+      - "traefik.http.services.prometheus.loadbalancer.server.port=9090"
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    volumes:
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    networks:
+      - shared-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.grafana.rule=Host(`dojo-task.com`) && PathPrefix(`/grafana`)"
+      - "traefik.http.routers.grafana.entrypoints=websecure"
+      - "traefik.http.routers.grafana.tls=true"
+      - "traefik.http.routers.grafana.tls.certresolver=myresolver"
+      - "traefik.http.services.grafana.loadbalancer.server.port=3000"
+
+  loki:
+    image: grafana/loki:latest
+    container_name: loki
+    volumes:
+      - ./monitoring/loki-config.yml:/etc/loki/local-config.yaml
+    ports:
+      - "3100:3100"
+    networks:
+      - shared-network
+
+  promtail:
+    image: grafana/promtail:latest
+    container_name: promtail
+    volumes:
+      - /var/log:/var/log
+      - ./monitoring/promtail-config.yml:/etc/promtail/config.yml
+    networks:
+      - shared-network
+    command:
+      - "-config.file=/etc/promtail/config.yml"
+
+  cadvisor:
+    image: google/cadvisor:latest
+    container_name: cadvisor
+    ports:
+      - "8080:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    networks:
+      - shared-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.cadvisor.rule=Host(`dojo-task.com`) && PathPrefix(`/cadvisor`)"
+      - "traefik.http.routers.cadvisor.entrypoints=websecure"
+      - "traefik.http.routers.cadvisor.tls=true"
+      - "traefik.http.routers.cadvisor.tls.certresolver=myresolver"
+      - "traefik.http.services.cadvisor.loadbalancer.server.port=8080"
+
+networks:
+  shared-network:
+    external: true
+
+volumes:
+  grafana-data:
+    driver: local

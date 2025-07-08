@@ -136,5 +136,17 @@ jobs:
               docker-compose logs
               exit 1
             fi
+
+            # Start monitoring stack
+            echo "Starting monitoring stack..."
+            cd monitoring
+            docker-compose -f docker-compose.monitoring.yml up -d --build
+            
+            # Check if monitoring containers are running
+            if ! docker-compose -f docker-compose.monitoring.yml ps | grep -q "Up"; then
+              echo "Failed to start monitoring containers"
+              docker-compose -f docker-compose.monitoring.yml logs
+              exit 1
+            fi
             
             echo "Deployment completed successfully"
