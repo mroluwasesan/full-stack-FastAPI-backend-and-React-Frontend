@@ -54,6 +54,7 @@ services:
     command:
       - "-config.file=/etc/promtail/config.yml"
 
+
   cadvisor:
     image: google/cadvisor:latest
     container_name: cadvisor
