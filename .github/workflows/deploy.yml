@@ -147,7 +147,6 @@ jobs:
 
             # Start monitoring stack
             echo "Starting monitoring stack..."
-            #cd /monitoring
             docker-compose -f docker-compose.monitoring.yml up -d --build
             
             # Check if monitoring containers are running
