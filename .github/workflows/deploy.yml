@@ -123,6 +123,7 @@ jobs:
               echo "Updating repository..."
               git pull origin main
             fi
+            
 
             # Stop and remove existing containers
             docker-compose down || true
