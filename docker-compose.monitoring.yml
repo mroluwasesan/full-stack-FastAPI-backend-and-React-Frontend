@@ -7,7 +7,7 @@ services:
     ports:
       - "9090:9090"
     networks:
-      - shared-network
+      - app-network
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.prometheus.rule=Host(`dojo-task.com`) && PathPrefix(`/prometheus`)"
@@ -24,7 +24,7 @@ services:
     ports:
       - "3000:3000"
     networks:
-      - shared-network
+      - app-network
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.grafana.rule=Host(`dojo-task.com`) && PathPrefix(`/grafana`)"
@@ -41,7 +41,7 @@ services:
     ports:
       - "3100:3100"
     networks:
-      - shared-network
+      - app-network
 
   promtail:
     image: grafana/promtail:latest
@@ -50,7 +50,7 @@ services:
       - /var/log:/var/log
       - ./monitoring/promtail-config.yml:/etc/promtail/config.yml
     networks:
-      - shared-network
+      - app-network
     command:
       - "-config.file=/etc/promtail/config.yml"
 
@@ -66,7 +66,7 @@ services:
       - /sys:/sys:ro
       - /var/lib/docker/:/var/lib/docker:ro
     networks:
-      - shared-network
+      - app-network
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.cadvisor.rule=Host(`dojo-task.com`) && PathPrefix(`/cadvisor`)"
@@ -76,7 +76,7 @@ services:
       - "traefik.http.services.cadvisor.loadbalancer.server.port=8080"
 
 networks:
-  shared-network:
+  app-network:
     external: true
 
 volumes:
