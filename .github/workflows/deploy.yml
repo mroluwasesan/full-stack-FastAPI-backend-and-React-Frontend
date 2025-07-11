@@ -128,10 +128,10 @@ jobs:
             docker-compose down || true
 
             # Ensure shared-network exists
-            echo "Ensuring shared-network exists..."
-            if ! docker network inspect shared-network >/dev/null 2>&1; then
-              echo "Creating shared-network..."
-              docker network create shared-network
+            echo "Ensuring networks exist..."
+            if ! docker network inspect app-network >/dev/null 2>&1; then
+              echo "Creating app-network..."
+              docker network create app-network
             fi
             
             # Build and start new containers
@@ -143,7 +143,6 @@ jobs:
               docker-compose logs
               exit 1
             fi
-
 
             # Start monitoring stack
             echo "Starting monitoring stack..."
