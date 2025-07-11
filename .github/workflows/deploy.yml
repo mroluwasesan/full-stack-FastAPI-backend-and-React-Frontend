@@ -124,9 +124,15 @@ jobs:
               git pull origin main
             fi
 
-
             # Stop and remove existing containers
             docker-compose down || true
+
+            # Ensure shared-network exists
+            echo "Ensuring shared-network exists..."
+            if ! docker network inspect shared-network >/dev/null 2>&1; then
+              echo "Creating shared-network..."
+              docker network create shared-network
+            fi
             
             # Build and start new containers
             docker-compose up -d --build
@@ -138,12 +144,6 @@ jobs:
               exit 1
             fi
 
-            # Ensure shared-network exists
-            echo "Ensuring shared-network exists..."
-            if ! docker network inspect shared-network >/dev/null 2>&1; then
-              echo "Creating shared-network..."
-              docker network create shared-network
-            fi
 
             # Start monitoring stack
             echo "Starting monitoring stack..."
