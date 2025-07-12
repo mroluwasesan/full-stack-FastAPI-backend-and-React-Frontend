@@ -14,8 +14,6 @@ scrape_configs:
   - job_name: 'cadvisor'
     static_configs:
       - targets: ['cadvisor:8080']
-    metrics_path: '/metrics'
-    scrape_interval: 15s
 
   - job_name: 'node-exporter'
     static_configs:
@@ -26,5 +24,9 @@ scrape_configs:
       - targets: ['loki:3100']
 
 
-  
+  # - job_name: 'cadvisor'
+  #   static_configs:
+  #     - targets: ['cadvisor:8080']
+  #   metrics_path: '/metrics'
+  #   scrape_interval: 15s
 
