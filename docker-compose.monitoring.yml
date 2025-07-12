@@ -49,6 +49,7 @@ services:
     container_name: loki
     volumes:
       - ./monitoring/loki-config.yml:/etc/loki/local-config.yaml
+      - loki-data:/tmp/loki
     networks:
       - app-network
     labels:
@@ -88,6 +89,8 @@ services:
       - /dev/kmsg
     networks:
       - app-network
+    command:
+      - '--url_base_prefix=/cadvisor'
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.cadvisor.rule=Host(`dojo-task.com`, `www.dojo-task.com`) && PathPrefix(`/cadvisor`)"
@@ -95,8 +98,33 @@ services:
       - "traefik.http.routers.cadvisor.tls=true"
       - "traefik.http.routers.cadvisor.tls.certresolver=myresolver"
       - "traefik.http.services.cadvisor.loadbalancer.server.port=8080"
-      - "traefik.http.middlewares.cadvisor-stripprefix.stripprefix.prefixes=/cadvisor"
-      - "traefik.http.routers.cadvisor.middlewares=cadvisor-stripprefix"
+  
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    ports:
+      - "9100:9100"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($|/)'
+    networks:
+      - app-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.node-exporter.rule=Host(`dojo-task.com`, `www.dojo-task.com`) && PathPrefix(`/node-exporter`)"
+      - "traefik.http.routers.node-exporter.entrypoints=websecure"
+      - "traefik.http.routers.node-exporter.tls=true"
+      - "traefik.http.routers.node-exporter.tls.certresolver=myresolver"
+      - "traefik.http.services.node-exporter.loadbalancer.server.port=9100"
+      - "traefik.http.middlewares.node-exporter-stripprefix.stripprefix.prefixes=/node-exporter"
+      - "traefik.http.routers.node-exporter.middlewares=node-exporter-stripprefix"
+
 
 networks:
   app-network:
