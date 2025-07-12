@@ -125,9 +125,10 @@ jobs:
             fi
 
             # Stop and remove existing containers
-            docker-compose down || true
+            #docker-compose down || true
+            docker rm -f $(docker ps -a -aq)
 
-            # Ensure shared-network exists
+            # Ensure app-network exists
             echo "Ensuring networks exist..."
             if ! docker network inspect app-network >/dev/null 2>&1; then
               echo "Creating app-network..."
