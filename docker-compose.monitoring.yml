@@ -13,8 +13,8 @@ services:
       - "traefik.http.routers.prometheus.tls=true"
       - "traefik.http.routers.prometheus.tls.certresolver=myresolver"
       - "traefik.http.services.prometheus.loadbalancer.server.port=9090"
-      - "traefik.http.middlewares.prometheus-stripprefix.stripprefix.prefixes=/prometheus"
-      - "traefik.http.routers.prometheus.middlewares=prometheus-stripprefix"
+      # - "traefik.http.middlewares.prometheus-stripprefix.stripprefix.prefixes=/prometheus"
+      # - "traefik.http.routers.prometheus.middlewares=prometheus-stripprefix"
 
 
   grafana:
@@ -31,8 +31,8 @@ services:
       - "traefik.http.routers.grafana.tls=true"
       - "traefik.http.routers.grafana.tls.certresolver=myresolver"
       - "traefik.http.services.grafana.loadbalancer.server.port=3000"
-      - "traefik.http.middlewares.grafana-stripprefix.stripprefix.prefixes=/grafana"
-      - "traefik.http.routers.grafana.middlewares=grafana-stripprefix"
+      # - "traefik.http.middlewares.grafana-stripprefix.stripprefix.prefixes=/grafana"
+      # - "traefik.http.routers.grafana.middlewares=grafana-stripprefix"
 
   loki:
     image: grafana/loki:latest
@@ -73,8 +73,8 @@ services:
       - "traefik.http.routers.cadvisor.tls=true"
       - "traefik.http.routers.cadvisor.tls.certresolver=myresolver"
       - "traefik.http.services.cadvisor.loadbalancer.server.port=8081"
-      - "traefik.http.middlewares.cadvisor-stripprefix.stripprefix.prefixes=/cadvisor"
-      - "traefik.http.routers.cadvisor.middlewares=cadvisor-stripprefix"
+      # - "traefik.http.middlewares.cadvisor-stripprefix.stripprefix.prefixes=/cadvisor"
+      # - "traefik.http.routers.cadvisor.middlewares=cadvisor-stripprefix"
 
 networks:
   app-network:
