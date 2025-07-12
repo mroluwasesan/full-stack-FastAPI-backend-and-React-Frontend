@@ -13,15 +13,15 @@ services:
       - "traefik.http.routers.prometheus.tls=true"
       - "traefik.http.routers.prometheus.tls.certresolver=myresolver"
       - "traefik.http.services.prometheus.loadbalancer.server.port=9090"
-      # - "traefik.http.middlewares.prometheus-stripprefix.stripprefix.prefixes=/prometheus"
-      # - "traefik.http.routers.prometheus.middlewares=prometheus-stripprefix"
-
-
+      
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
     volumes:
       - grafana-data:/var/lib/grafana
+    environment:
+      - GF_SERVER_ROOT_URL=%(protocol)s://%(domain)s/grafana
+      - GF_SERVER_SERVE_FROM_SUB_PATH=true
     networks:
       - app-network
     labels:
@@ -31,8 +31,7 @@ services:
       - "traefik.http.routers.grafana.tls=true"
       - "traefik.http.routers.grafana.tls.certresolver=myresolver"
       - "traefik.http.services.grafana.loadbalancer.server.port=3000"
-      # - "traefik.http.middlewares.grafana-stripprefix.stripprefix.prefixes=/grafana"
-      # - "traefik.http.routers.grafana.middlewares=grafana-stripprefix"
+
 
   loki:
     image: grafana/loki:latest
@@ -59,6 +58,8 @@ services:
   cadvisor:
     image: google/cadvisor:latest
     container_name: cadvisor
+    ports:
+    - "8081:8080"
     volumes:
       - /:/rootfs:ro
       - /var/run:/var/run:ro
@@ -72,9 +73,8 @@ services:
       - "traefik.http.routers.cadvisor.entrypoints=websecure"
       - "traefik.http.routers.cadvisor.tls=true"
       - "traefik.http.routers.cadvisor.tls.certresolver=myresolver"
-      - "traefik.http.services.cadvisor.loadbalancer.server.port=8081"
-      # - "traefik.http.middlewares.cadvisor-stripprefix.stripprefix.prefixes=/cadvisor"
-      # - "traefik.http.routers.cadvisor.middlewares=cadvisor-stripprefix"
+      - "traefik.http.services.cadvisor.loadbalancer.server.port=8080"
+
 
 networks:
   app-network:
