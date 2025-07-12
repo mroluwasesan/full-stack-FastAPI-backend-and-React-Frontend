@@ -104,6 +104,7 @@ services:
 networks:
   app-network:
     driver: bridge
+    external: true
   
 
 volumes:
