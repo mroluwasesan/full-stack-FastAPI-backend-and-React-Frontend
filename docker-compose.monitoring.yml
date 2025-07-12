@@ -8,7 +8,7 @@ services:
       - app-network
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.prometheus.rule=Host(`dojo-task.com`) && PathPrefix(`/prometheus`)"
+      - "traefik.http.routers.prometheus.rule=Host(`dojo-task.com`, `www.dojo-task.com`) && PathPrefix(`/prometheus`)"
       - "traefik.http.routers.prometheus.entrypoints=websecure"
       - "traefik.http.routers.prometheus.tls=true"
       - "traefik.http.routers.prometheus.tls.certresolver=myresolver"
@@ -26,7 +26,7 @@ services:
       - app-network
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.grafana.rule=Host(`dojo-task.com`) && PathPrefix(`/grafana`)"
+      - "traefik.http.routers.grafana.rule=Host(`dojo-task.com`, `www.dojo-task.com`) && PathPrefix(`/grafana`)"
       - "traefik.http.routers.grafana.entrypoints=websecure"
       - "traefik.http.routers.grafana.tls=true"
       - "traefik.http.routers.grafana.tls.certresolver=myresolver"
@@ -68,7 +68,7 @@ services:
       - app-network
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.cadvisor.rule=Host(`dojo-task.com`) && PathPrefix(`/cadvisor`)"
+      - "traefik.http.routers.cadvisor.rule=Host(`dojo-task.com`, `www.dojo-task.com`) && PathPrefix(`/cadvisor`)"
       - "traefik.http.routers.cadvisor.entrypoints=websecure"
       - "traefik.http.routers.cadvisor.tls=true"
       - "traefik.http.routers.cadvisor.tls.certresolver=myresolver"

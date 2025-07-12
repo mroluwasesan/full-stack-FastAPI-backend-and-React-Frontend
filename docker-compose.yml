@@ -11,7 +11,7 @@ services:
       - "--entrypoints.websecure.address=:443"
       - "--certificatesresolvers.myresolver.acme.httpchallenge=true"
       - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web"
-      - "--certificatesresolvers.myresolver.acme.email=mr.oluwasesan@gmail.com"
+      - "--certificatesresolvers.myresolver.acme.email=test@gmail.com"
       - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
 
     ports:
@@ -47,7 +47,7 @@ services:
       - ./frontend/.env
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.frontend.rule=Host(`dojo-task.com`)"
+      - "traefik.http.routers.frontend.rule=Host(`dojo-task.com`, `www.dojo-task.com`)"
       - "traefik.http.routers.frontend.entrypoints=websecure"
       - "traefik.http.routers.frontend.tls=true"
       - "traefik.http.routers.frontend.tls.certresolver=myresolver"
@@ -66,7 +66,7 @@ services:
       - ./backend/.env
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.backend-api.rule=Host(`dojo-task.com`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.backend-api.rule=Host(`dojo-task.com`, `www.dojo-task.com`) && PathPrefix(`/api`)"
       - "traefik.http.routers.backend-api.entrypoints=websecure"
       - "traefik.http.routers.backend-api.tls=true"
       - "traefik.http.routers.backend-api.tls.certresolver=myresolver"
@@ -75,7 +75,7 @@ services:
       - "traefik.http.middlewares.api-stripprefix.stripprefix.prefixes=/api"
       - "traefik.http.routers.backend-api.middlewares=api-stripprefix"
 
-      - "traefik.http.routers.backend-docs.rule=Host(`dojo-task.com`) && PathPrefix(`/docs`)"
+      - "traefik.http.routers.backend-docs.rule=Host(`dojo-task.com`, `www.dojo-task.com`) && PathPrefix(`/docs`)"
       - "traefik.http.routers.backend-docs.entrypoints=websecure"
       - "traefik.http.routers.backend-docs.tls=true"
       - "traefik.http.routers.backend-docs.tls.certresolver=myresolver"
