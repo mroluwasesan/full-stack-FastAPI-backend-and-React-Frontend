@@ -90,14 +90,17 @@ services:
     networks:
       - app-network
     command:
-      - '--url_base_prefix=/cadvisor'
+    - '--housekeeping_interval=10s'
+    - '--url_base_prefix=/'
     labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.cadvisor.rule=Host(`dojo-task.com`, `www.dojo-task.com`) && PathPrefix(`/cadvisor`)"
-      - "traefik.http.routers.cadvisor.entrypoints=websecure"
-      - "traefik.http.routers.cadvisor.tls=true"
-      - "traefik.http.routers.cadvisor.tls.certresolver=myresolver"
-      - "traefik.http.services.cadvisor.loadbalancer.server.port=8080"
+    - "traefik.enable=true"
+    - "traefik.http.routers.cadvisor.rule=Host(`dojo-task.com`, `www.dojo-task.com`) && PathPrefix(`/cadvisor`)"
+    - "traefik.http.routers.cadvisor.entrypoints=websecure"
+    - "traefik.http.routers.cadvisor.tls=true"
+    - "traefik.http.routers.cadvisor.tls.certresolver=myresolver"
+    - "traefik.http.services.cadvisor.loadbalancer.server.port=8080"
+    - "traefik.http.middlewares.cadvisor-stripprefix.stripprefix.prefixes=/cadvisor"
+    - "traefik.http.routers.cadvisor.middlewares=cadvisor-stripprefix"
   
   node-exporter:
     image: prom/node-exporter:latest
