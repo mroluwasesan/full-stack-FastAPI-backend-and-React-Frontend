@@ -133,3 +133,5 @@ networks:
 volumes:
   grafana-data:
     driver: local
+  loki-data:
+    driver: local
