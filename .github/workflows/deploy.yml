@@ -159,10 +159,6 @@ jobs:
             echo "Checking Traefik configuration..."
             docker exec dojo-task-traefik-1 traefik config dump
 
-            # Check Traefik logs for errors
-            echo "Checking Traefik logs..."
-            docker logs dojo-task-traefik-1
-
             # Verify services are registered with Traefik
             echo "Checking Traefik service status..."
             curl -k https://localhost/api/http/services | jq .
