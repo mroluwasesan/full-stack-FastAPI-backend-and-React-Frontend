@@ -12,8 +12,8 @@ services:
       - '--web.console.libraries=/etc/prometheus/console_libraries'
       - '--web.console.templates=/etc/prometheus/consoles'
       - '--web.enable-lifecycle'
-      - '--web.external-url=https://dojo-task.com/prometheus'
-      - '--web.route-prefix=/prometheus'
+      - '--web.external-url=https://dojo-task.com/prometheus/'
+      - '--web.route-prefix=/'
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.prometheus.rule=Host(`dojo-task.com`, `www.dojo-task.com`) && PathPrefix(`/prometheus`)"
@@ -49,10 +49,17 @@ services:
     container_name: loki
     volumes:
       - ./monitoring/loki-config.yml:/etc/loki/local-config.yaml
-    ports:
-      - "3100:3100"
     networks:
       - app-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.loki.rule=Host(`dojo-task.com`, `www.dojo-task.com`) && PathPrefix(`/loki`)"
+      - "traefik.http.routers.loki.entrypoints=websecure"
+      - "traefik.http.routers.loki.tls=true"
+      - "traefik.http.routers.loki.tls.certresolver=myresolver"
+      - "traefik.http.services.loki.loadbalancer.server.port=3100"
+      - "traefik.http.middlewares.loki-stripprefix.stripprefix.prefixes=/loki"
+      - "traefik.http.routers.loki.middlewares=loki-stripprefix"
 
   promtail:
     image: grafana/promtail:latest
