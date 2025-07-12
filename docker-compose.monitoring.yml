@@ -91,7 +91,6 @@ services:
       - app-network
     command:
     - '--housekeeping_interval=10s'
-    - '--url_base_prefix=/'
     labels:
     - "traefik.enable=true"
     - "traefik.http.routers.cadvisor.rule=Host(`dojo-task.com`, `www.dojo-task.com`) && PathPrefix(`/cadvisor`)"
