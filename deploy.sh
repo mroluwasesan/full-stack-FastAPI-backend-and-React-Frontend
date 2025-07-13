@@ -10,6 +10,7 @@ install_python() {
         sudo add-apt-repository -y ppa:deadsnakes/ppa
         sudo apt-get update
         sudo apt-get install -y python3.11 python3.11-venv python3.11-dev
+        sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1
     else
         echo "Python 3.11 is already installed"
     fi
@@ -20,10 +21,18 @@ install_pip() {
     if ! command_exists pip3; then
         echo "Installing pip..."
         sudo apt-get install -y python3-pip
+        python3.11 -m ensurepip --upgrade
     else
         echo "pip is already installed"
     fi
+    # Add pip to PATH if needed
+        if [[ ":$PATH:" != *":$HOME/.local/bin:"* ]]; then
+            echo "Adding ~/.local/bin to PATH"
+            echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
+            source ~/.bashrc
+        fi
 }
+
 
 # Function to install Docker
 install_docker() {
@@ -71,6 +80,7 @@ setup_docker_user() {
         echo "User is already in docker group"
     fi
 }
+\
 
 # Function to install Python packages
 install_python_packages() {
@@ -94,8 +104,6 @@ setup_deployment_directory() {
     DEPLOY_DIR="/home/$USER/dojo-task"
     mkdir -p $DEPLOY_DIR
     cd $DEPLOY_DIR
-
-    # Store the deploy directory for later use
     export DEPLOY_DIR
 }
 
@@ -107,6 +115,8 @@ update_repository() {
         # Note: GITHUB_REPOSITORY should be passed as environment variable
         git clone https://github.com/${GITHUB_REPOSITORY}.git .
     else
+        echo "Resetting any local changes..."
+        git reset --hard HEAD
         echo "Updating existing repository..."
         git pull origin main
     fi
