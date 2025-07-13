@@ -1,203 +1,129 @@
 #!/bin/bash
 
-set -e  # Exit on any error
-
-# Function to install Python 3.11
-install_python() {
-    if ! command_exists python3.11; then
-        echo "Installing Python 3.11..."
-        sudo apt-get install -y software-properties-common
-        sudo add-apt-repository -y ppa:deadsnakes/ppa
-        sudo apt-get update
-        sudo apt-get install -y python3.11 python3.11-venv python3.11-dev
-        sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1
-    else
-        echo "Python 3.11 is already installed"
-    fi
+# Function to check if a command exists
+command_exists() {
+  command -v "$1" &> /dev/null
 }
 
-# Function to install pip
-install_pip() {
-    if ! command_exists pip3; then
-        echo "Installing pip..."
-        sudo apt-get install -y python3-pip
-        python3.11 -m ensurepip --upgrade
-    else
-        echo "pip is already installed"
-    fi
-    # Add pip to PATH if needed
-        if [[ ":$PATH:" != *":$HOME/.local/bin:"* ]]; then
-            echo "Adding ~/.local/bin to PATH"
-            echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
-            source ~/.bashrc
-        fi
-}
+# Exit on error
+set -e
 
+# Update package lists
+echo "Updating package lists..."
+sudo apt-get update
 
-# Function to install Docker
-install_docker() {
-    if ! command_exists docker; then
-        echo "Installing Docker..."
-        sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common
-        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-        sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-        sudo apt-get update
-        sudo apt-get install -y docker-ce
-    else
-        echo "Docker is already installed"
-    fi
-}
+# Install Python 3.11 if not installed
+if ! command_exists python3.11; then
+  echo "Installing Python 3.11..."
+  sudo apt-get install -y software-properties-common
+  sudo add-apt-repository -y ppa:deadsnakes/ppa
+  sudo apt-get update
+  sudo apt-get install -y python3.11 python3.11-venv python3.11-dev
+fi
 
-# Function to install Docker Compose
-install_docker_compose() {
-    if ! command_exists docker-compose; then
-        echo "Installing Docker Compose..."
-        sudo curl -L "https://github.com/docker/compose/releases/download/v2.20.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-        sudo chmod +x /usr/local/bin/docker-compose
-    else
-        echo "Docker Compose is already installed"
-    fi
-}
+# Install pip if not installed
+if ! command_exists pip3; then
+  echo "Installing pip..."
+  sudo apt-get install -y python3-pip
+fi
 
-# Function to start Docker service
-start_docker_service() {
-    if ! sudo systemctl is-active --quiet docker; then
-        echo "Starting Docker service..."
-        sudo systemctl start docker
-        sudo systemctl enable docker
-    else
-        echo "Docker service is already running"
-    fi
-}
+# Install Docker if not installed
+if ! command_exists docker; then
+  echo "Installing Docker..."
+  sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common
+  curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+  sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+  sudo apt-get update
+  sudo apt-get install -y docker-ce
+fi
 
-# Function to add user to docker group
-setup_docker_user() {
-    if ! groups $USER | grep -q docker; then
-        echo "Adding user to docker group..."
-        sudo usermod -aG docker $USER
-        newgrp docker
-    else
-        echo "User is already in docker group"
-    fi
-}
-\
+# Install Docker Compose if not installed
+if ! command_exists docker-compose; then
+  echo "Installing Docker Compose..."
+  sudo curl -L "https://github.com/docker/compose/releases/download/v2.20.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+  sudo chmod +x /usr/local/bin/docker-compose
+fi
 
-# Function to install Python packages
-install_python_packages() {
-    echo "Installing required Python packages..."
-    pip3 install --upgrade pip
-    pip3 install docker-compose
-}
+# Start Docker service if not running
+if ! sudo systemctl is-active --quiet docker; then
+  echo "Starting Docker service..."
+  sudo systemctl start docker
+  sudo systemctl enable docker
+fi
 
-# Function to verify installations
-verify_installations() {
-    echo "Verifying installations..."
-    python3.11 --version
-    pip3 --version
-    docker --version
-    docker-compose --version
-}
+# Add current user to docker group if not already added
+if ! groups $USER | grep -q docker; then
+  echo "Adding user to docker group..."
+  sudo usermod -aG docker $USER
+  newgrp docker
+fi
 
-# Function to setup deployment directory
-setup_deployment_directory() {
-    echo "Setting up deployment directory..."
-    DEPLOY_DIR="/home/$USER/dojo-task"
-    mkdir -p $DEPLOY_DIR
-    cd $DEPLOY_DIR
-    export DEPLOY_DIR
-}
+# Install required Python packages
+echo "Installing required Python packages..."
+pip3 install --upgrade pip
+pip3 install docker-compose
 
-# Function to clone or update repository
-update_repository() {
-    echo "Updating repository..."
-    if [ ! -d ".git" ]; then
-        echo "Cloning repository..."
-        # Note: GITHUB_REPOSITORY should be passed as environment variable
-        git clone https://github.com/${GITHUB_REPOSITORY}.git .
-    else
-        echo "Resetting any local changes..."
-        git reset --hard HEAD
-        echo "Updating existing repository..."
-        git pull origin main
-    fi
-}
+# Verify installations
+echo "Verifying installations..."
+python3.11 --version
+pip3 --version
+docker --version
+docker-compose --version
 
-# Function to stop existing containers
-stop_existing_containers() {
-    echo "Stopping existing containers..."
-    # Stop and remove existing containers
-    docker rm -f $(docker ps -a -aq) 2>/dev/null || true
-}
+# Create and set up deployment directory
+echo "Setting up deployment directory..."
+DEPLOY_DIR="/home/$USER/dojo-task"
+mkdir -p $DEPLOY_DIR
+cd $DEPLOY_DIR
 
-# Function to setup Docker networks
-setup_docker_networks() {
-    echo "Ensuring networks exist..."
-    if ! docker network inspect app-network >/dev/null 2>&1; then
-        echo "Creating app-network..."
-        docker network create app-network
-    else
-        echo "app-network already exists"
-    fi
-}
+# Clone or update repository
+if [ ! -d ".git" ]; then
+  echo "Cloning repository..."
+  git clone https://github.com/$GITHUB_REPOSITORY.git .
+else
+  echo "Updating repository..."
+  git pull origin main
+fi
 
-# Function to build and start main containers
-start_main_containers() {
-    echo "Building and starting main containers..."
-    docker-compose up -d --build
+# Stop and remove existing containers
+echo "Stopping and removing existing containers..."
+docker rm -f $(docker ps -a -q) || true
 
-    # Check if containers are running
-    if ! docker-compose ps | grep -q "Up"; then
-        echo "Failed to start containers"
-        docker-compose logs
-        exit 1
-    fi
-    echo "Main containers started successfully"
-}
+# Ensure app-network exists
+echo "Ensuring networks exist..."
+if ! docker network inspect app-network >/dev/null 2>&1; then
+  echo "Creating app-network..."
+  docker network create app-network
+fi
 
-# Function to start monitoring stack
-start_monitoring_stack() {
-    echo "Starting monitoring stack..."
-    docker-compose -f docker-compose.monitoring.yml up -d --build
+# Build and start new containers
+echo "Building and starting containers..."
+docker-compose up -d --build
 
-    # Check if monitoring containers are running
-    if ! docker-compose -f docker-compose.monitoring.yml ps | grep -q "Up"; then
-        echo "Failed to start monitoring containers"
-        docker-compose -f docker-compose.monitoring.yml logs
-        exit 1
-    fi
-    echo "Monitoring stack started successfully"
-}
+# Check if containers are running
+if ! docker-compose ps | grep -q "Up"; then
+  echo "Failed to start containers"
+  docker-compose logs
+  exit 1
+fi
 
-# Main deployment function
-main() {
-    echo "Starting deployment process..."
+# Start monitoring stack
+echo "Starting monitoring stack..."
+docker-compose -f docker-compose.monitoring.yml up -d --build
 
-    # Update package lists
-    echo "Updating package lists..."
-    sudo apt-get update
+# Check if monitoring containers are running
+if ! docker-compose -f docker-compose.monitoring.yml ps | grep -q "Up"; then
+  echo "Failed to start monitoring containers"
+  docker-compose -f docker-compose.monitoring.yml logs
+  exit 1
+fi
 
-    # Install all required components
-    install_python
-    install_pip
-    install_docker
-    install_docker_compose
-    start_docker_service
-    setup_docker_user
-    install_python_packages
-    verify_installations
+# Verify Traefik is routing correctly
+echo "Checking Traefik configuration..."
+docker exec dojo-task-traefik-1 traefik config dump
 
-    # Setup deployment
-    setup_deployment_directory
-    update_repository
-    stop_existing_containers
-    setup_docker_networks
+# Verify services are registered with Traefik
+echo "Checking Traefik service status..."
+curl -k https://localhost/api/http/services | jq .
 
-    # Start services
-    start_main_containers
-    start_monitoring_stack
-
-    echo "Deployment completed successfully!"
-}
-
-# Run main function
-main "$@"
+echo "Deployment completed successfully"
