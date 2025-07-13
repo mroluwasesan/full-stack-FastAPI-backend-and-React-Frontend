@@ -103,11 +103,11 @@ setup_deployment_directory() {
 update_repository() {
     echo "Updating repository..."
     if [ ! -d ".git" ]; then
-        print_status "Cloning repository..."
+        echo "Cloning repository..."
         # Note: GITHUB_REPOSITORY should be passed as environment variable
         git clone https://github.com/${GITHUB_REPOSITORY}.git .
     else
-        print_status "Updating existing repository..."
+        echo "Updating existing repository..."
         git pull origin main
     fi
 }
@@ -123,7 +123,7 @@ stop_existing_containers() {
 setup_docker_networks() {
     echo "Ensuring networks exist..."
     if ! docker network inspect app-network >/dev/null 2>&1; then
-        print_status "Creating app-network..."
+        echo "Creating app-network..."
         docker network create app-network
     else
         echo "app-network already exists"
@@ -137,7 +137,7 @@ start_main_containers() {
 
     # Check if containers are running
     if ! docker-compose ps | grep -q "Up"; then
-        print_error "Failed to start containers"
+        echo "Failed to start containers"
         docker-compose logs
         exit 1
     fi
@@ -151,7 +151,7 @@ start_monitoring_stack() {
 
     # Check if monitoring containers are running
     if ! docker-compose -f docker-compose.monitoring.yml ps | grep -q "Up"; then
-        print_error "Failed to start monitoring containers"
+        echo "Failed to start monitoring containers"
         docker-compose -f docker-compose.monitoring.yml logs
         exit 1
     fi
