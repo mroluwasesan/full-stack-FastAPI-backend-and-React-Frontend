@@ -80,10 +80,28 @@ cd $DEPLOY_DIR
 if [ ! -d ".git" ]; then
   echo "Cloning repository..."
   git clone https://github.com/$GITHUB_REPOSITORY.git .
+  # Fetch all branches
+  git fetch --all
 else
   echo "Updating repository..."
-  git pull origin main
+  # Reset any local changes that might prevent pull
+  git reset --hard
+  # Clean any untracked files
+  git clean -fd
+  # Fetch all changes from remote
+  git fetch --all
+  # Get the default branch name dynamically
+  DEFAULT_BRANCH=$(git remote show origin | grep 'HEAD branch' | awk '{print $3}')
+  # Checkout and pull the default branch
+  git checkout $DEFAULT_BRANCH
+  git pull origin $DEFAULT_BRANCH
 fi
+
+# Verify the repository state
+echo "Repository status:"
+git status
+echo "Latest commit:"
+git log -1
 
 # Stop and remove existing containers
 echo "Stopping and removing existing containers..."
