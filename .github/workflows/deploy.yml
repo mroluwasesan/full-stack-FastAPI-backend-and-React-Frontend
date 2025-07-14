@@ -43,8 +43,10 @@ jobs:
           username: ${{ secrets.SERVER_USERNAME }}
           password: ${{ secrets.SERVER_PASSWORD }}
           script: |
-            # Transfer the deploy script from the repository
-            cat ./deploy.sh > deploy.sh
+            DEPLOY_DIR="/home/$USER/dojo-task"
+            mkdir -p $DEPLOY_DIR
+            cd $DEPLOY_DIR
+            git pull origin main  # or your branch name
             chmod +x deploy.sh
             ./deploy.sh
 
