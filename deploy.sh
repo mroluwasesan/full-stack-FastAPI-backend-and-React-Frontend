@@ -50,15 +50,34 @@ if ! docker plugin ls | grep -q loki; then
   docker plugin install grafana/loki-docker-driver:latest --alias loki --grant-all-permissions
 fi
 
-# Configure Docker daemon to use Loki logging driver
+# Wait for Loki to be ready
+echo "Waiting for Loki to be ready..."
+sleep 10
+
+# Check if Loki is accessible
+max_retries=20
+retry_count=0
+while [ $retry_count -lt $max_retries ]; do
+  if curl -s http://localhost:3100/ready > /dev/null 2>&1; then
+    echo "Loki is ready!"
+    break
+  fi
+  echo "Waiting for Loki... ($retry_count/$max_retries)"
+  sleep 10
+  retry_count=$((retry_count + 1))
+done
+
+if [ $retry_count -eq $max_retries ]; then
+  echo "Warning: Loki may not be ready, but continuing..."
+fi
+
+# Configure Docker daemon to use default logging (not Loki globally)
 echo "Configuring Docker logging driver..."
 sudo mkdir -p /etc/docker
 sudo tee /etc/docker/daemon.json > /dev/null <<EOF
 {
-  "log-driver": "loki",
+  "log-driver": "json-file",
   "log-opts": {
-    "loki-url": "http://localhost:3100/loki/api/v1/push",
-    "loki-batch-size": "400",
     "max-size": "10m",
     "max-file": "10"
   }
@@ -104,17 +123,6 @@ if ! docker network inspect app-network >/dev/null 2>&1; then
   docker network create app-network
 fi
 
-# Build and start new containers
-echo "Building and starting containers..."
-docker-compose up -d --build
-
-# Check if containers are running
-if ! docker-compose ps | grep -q "Up"; then
-  echo "Failed to start containers"
-  docker-compose logs
-  exit 1
-fi
-
 # Start monitoring stack
 echo "Starting monitoring stack..."
 docker-compose -f docker-compose.monitoring.yml up -d --build
@@ -123,6 +131,17 @@ docker-compose -f docker-compose.monitoring.yml up -d --build
 if ! docker-compose -f docker-compose.monitoring.yml ps | grep -q "Up"; then
   echo "Failed to start monitoring containers"
   docker-compose -f docker-compose.monitoring.yml logs
+  exit 1
+fi
+
+# Build and start new containers
+echo "Building and starting containers..."
+docker-compose up -d --build
+
+# Check if containers are running
+if ! docker-compose ps | grep -q "Up"; then
+  echo "Failed to start containers"
+  docker-compose logs
   exit 1
 fi
 
