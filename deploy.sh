@@ -35,11 +35,25 @@ if ! command_exists docker; then
   sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
   sudo apt-get update
   sudo apt-get install -y docker-ce
+fi
 
-  # Configure Docker daemon to use Loki logging driver
-  echo "Configuring Docker logging driver..."
-  sudo mkdir -p /etc/docker
-  sudo tee /etc/docker/daemon.json > /dev/null <<EOF
+# Install Docker Compose if not installed
+if ! command_exists docker-compose; then
+  echo "Installing Docker Compose..."
+  sudo curl -L "https://github.com/docker/compose/releases/download/v2.20.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+  sudo chmod +x /usr/local/bin/docker-compose
+fi
+
+# Install Loki Docker plugin if not installed
+if ! docker plugin ls | grep -q loki; then
+  echo "Installing Loki Docker plugin..."
+  docker plugin install grafana/loki-docker-driver:latest --alias loki --grant-all-permissions
+fi
+
+# Configure Docker daemon to use Loki logging driver
+echo "Configuring Docker logging driver..."
+sudo mkdir -p /etc/docker
+sudo tee /etc/docker/daemon.json > /dev/null <<EOF
 {
   "log-driver": "loki",
   "log-opts": {
@@ -50,16 +64,7 @@ if ! command_exists docker; then
   }
 }
 EOF
-  sudo systemctl restart docker
-fi
-
-# Install Docker Compose if not installed
-if ! command_exists docker-compose; then
-  echo "Installing Docker Compose..."
-  sudo curl -L "https://github.com/docker/compose/releases/download/v2.20.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-  sudo chmod +x /usr/local/bin/docker-compose
-fi
-
+sudo systemctl restart docker
 
 # Start Docker service if not running
 if ! sudo systemctl is-active --quiet docker; then
