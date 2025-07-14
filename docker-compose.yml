@@ -38,6 +38,12 @@ services:
       - db
     networks:
       - app-network
+    logging:
+      driver: loki
+      options:
+        loki-url: "http://loki:3100/loki/api/v1/push"
+        loki-batch-size: "400"
+        loki-external-labels:
 
   frontend:
     build: 
@@ -58,6 +64,12 @@ services:
       - backend
     networks:
       - app-network
+    logging:
+      driver: loki
+      options:
+        loki-url: "http://loki:3100/loki/api/v1/push"
+        loki-batch-size: "400"
+        loki-external-labels:
 
   backend:
     build: 
@@ -87,6 +99,12 @@ services:
         condition: service_healthy
     networks:
       - app-network
+    logging:
+      driver: loki
+      options:
+        loki-url: "http://loki:3100/loki/api/v1/push"
+        loki-batch-size: "400"
+        loki-external-labels:
 
   db:
     image: postgres:latest
@@ -102,7 +120,13 @@ services:
       retries: 5
     networks:
       - app-network
-    
+    logging:
+      driver: loki
+      options:
+        loki-url: "http://loki:3100/loki/api/v1/push"
+        loki-batch-size: "400"
+        loki-external-labels:
+
 networks:
   app-network:
     driver: bridge

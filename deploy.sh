@@ -35,6 +35,22 @@ if ! command_exists docker; then
   sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
   sudo apt-get update
   sudo apt-get install -y docker-ce
+
+  # Configure Docker daemon to use Loki logging driver
+  echo "Configuring Docker logging driver..."
+  sudo mkdir -p /etc/docker
+  sudo tee /etc/docker/daemon.json > /dev/null <<EOF
+{
+  "log-driver": "loki",
+  "log-opts": {
+    "loki-url": "http://localhost:3100/loki/api/v1/push",
+    "loki-batch-size": "400",
+    "max-size": "10m",
+    "max-file": "10"
+  }
+}
+EOF
+  sudo systemctl restart docker
 fi
 
 # Install Docker Compose if not installed
@@ -43,6 +59,7 @@ if ! command_exists docker-compose; then
   sudo curl -L "https://github.com/docker/compose/releases/download/v2.20.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
   sudo chmod +x /usr/local/bin/docker-compose
 fi
+
 
 # Start Docker service if not running
 if ! sudo systemctl is-active --quiet docker; then
@@ -72,6 +89,7 @@ docker-compose --version
 
 # Stop and remove existing containers
 echo "Stopping and removing existing containers..."
+# Stop all running containers
 docker rm -f $(docker ps -a -q) || true
 
 # Ensure app-network exists
