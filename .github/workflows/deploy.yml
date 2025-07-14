@@ -46,7 +46,9 @@ jobs:
             DEPLOY_DIR="/home/$USER/dojo-task"
             mkdir -p $DEPLOY_DIR
             cd $DEPLOY_DIR
-            git pull origin main  # or your branch name
+            git reset --hard
+            git pull origin main
+            # Ensure deploy.sh is executable and run it
             chmod +x deploy.sh
             ./deploy.sh
 
