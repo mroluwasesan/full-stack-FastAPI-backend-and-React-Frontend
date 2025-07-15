@@ -50,27 +50,6 @@ if ! docker plugin ls | grep -q loki; then
   docker plugin install grafana/loki-docker-driver:latest --alias loki --grant-all-permissions
 fi
 
-# Wait for Loki to be ready
-echo "Waiting for Loki to be ready..."
-sleep 10
-
-# Check if Loki is accessible
-max_retries=20
-retry_count=0
-while [ $retry_count -lt $max_retries ]; do
-  if curl -s http://localhost:3100/ready > /dev/null 2>&1; then
-    echo "Loki is ready!"
-    break
-  fi
-  echo "Waiting for Loki... ($retry_count/$max_retries)"
-  sleep 10
-  retry_count=$((retry_count + 1))
-done
-
-if [ $retry_count -eq $max_retries ]; then
-  echo "Warning: Loki may not be ready, but continuing..."
-fi
-
 # Configure Docker daemon to use default logging (not Loki globally)
 echo "Configuring Docker logging driver..."
 sudo mkdir -p /etc/docker
